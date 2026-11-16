@@ -1,5 +1,7 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PS5 Storage Manager</title><style>
+
+ 
+ <title>PS5 Storage Manager</title><style>
  /* TOXIC CODES LOGIN EFFECT */
 #loginForm {
   animation: toxicLoginIn 1s ease-out both;
@@ -43,7 +45,36 @@ header{padding:24px;border-bottom:1px solid #6e2636;background:rgba(12,5,10,.82)
 .panel{margin:0 0 17px;padding:22px;background:rgba(15,7,13,.93);border-color:rgba(139,54,75,.75)}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:14px}.section-heading h2{font-size:19px;margin:5px 0}.section-heading p{margin:0}.browser-shortcuts{display:flex;gap:5px;flex-wrap:wrap}.path-row{display:grid;grid-template-columns:minmax(100px,.65fr) minmax(230px,1.35fr);gap:10px;align-items:center}.path-entry{display:flex;gap:7px}.path-entry input{min-width:0}.path-entry button{margin:0}.file-list{min-height:170px;max-height:520px;overflow:auto;border:1px solid rgba(139,54,75,.55);border-radius:12px;background:rgba(5,3,6,.58)}.file-list .entry{padding:13px 14px}.file-list .entry:hover{background:rgba(112,36,59,.25)}.upload-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.upload-controls input{flex:1;min-width:220px}.upload-controls button{margin:0}.transfer-icon{display:grid;place-items:center;width:46px;height:46px;border:1px solid #a34b62;border-radius:14px;background:#451321;color:#ffdce5;font-size:25px}.app-footer{padding:8px 4px 15px;text-align:center}
 @media(max-width:900px){.app-layout{grid-template-columns:1fr}.sidebar{position:static}.sidebar .row{max-width:460px}.nav-action{display:inline-block;width:auto}.app-header{align-items:flex-start;flex-direction:column}.header-tools{justify-content:flex-start}}
 @media(max-width:560px){.app-layout{padding:12px}.welcome-strip{padding:19px}.welcome-strip h2{font-size:21px}.welcome-mark{width:56px;height:56px;flex-basis:56px}.path-row{grid-template-columns:1fr}.section-heading{align-items:flex-start;flex-direction:column}.upload-controls{align-items:stretch;flex-direction:column}.upload-controls button{width:100%}}
-</style></head><body class="locked"><div id="loginScreen" class="login-screen"><section class="login-card"><img src="toxic-codes-logo.png" alt="Toxic Codes"><h2 id="loginTitle">Welcome, Dante Girard</h2><p id="loginSubtitle">Secure local sign-in</p><form id="loginForm"><div class="field"><label for="loginUsername">Username</label><input id="loginUsername" autocomplete="username" required minlength="3" maxlength="32"></div><div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required minlength="10" maxlength="128"></div><div class="field" id="confirmField" hidden><label for="confirmPassword">Confirm password</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128"></div><div class="login-error" id="loginError" role="alert"></div><button id="loginSubmit" type="submit">Log in</button></form><p class="muted">First launch? Create your own account. This login is for this Windows app only, not PSN.</p></section></div>
+<style>
+/* Metallic dark green and yellow buttons */
+ 
+button:not(.danger) {
+color: #fff9c9;
+border: 1px solid #d8c45b;
+background: linear-gradient(180deg, #477c45, #24552d 45%, #123b24);
+box-shadow: inset 0 1px 0 #ffffff44, 0 4px 13px #0006;
+text-shadow: 0 1px 2px #000;
+}
+
+button:not(.danger):hover {
+color: #fffde0;
+border-color: #f3df70;
+background: linear-gradient(180deg, #639b4f, #326b35 45%, #19482a);
+}
+
+button.secondary:not(.danger) {
+color: #f4e88d;
+border-color: #9d963e;
+background: linear-gradient(180deg, #294d32, #183a27 55%, #102b1e);
+}
+
+button.secondary:not(.danger):hover {
+background: linear-gradient(180deg, #3d6840, #245032 55%, #153b27);
+}
+</style>
+
+
+</head><body class="locked"><div id="loginScreen" class="login-screen"><section class="login-card"><img src="toxic-codes-logo.png" alt="Toxic Codes"><h2 id="loginTitle">Welcome, Dante Girard</h2><p id="loginSubtitle">Secure local sign-in</p><form id="loginForm"><div class="field"><label for="loginUsername">Username</label><input id="loginUsername" autocomplete="username" required minlength="3" maxlength="32"></div><div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required minlength="10" maxlength="128"></div><div class="field" id="confirmField" hidden><label for="confirmPassword">Confirm password</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128"></div><div class="login-error" id="loginError" role="alert"></div><button id="loginSubmit" type="submit">Log in</button></form><p class="muted">First launch? Create your own account. This login is for this Windows app only, not PSN.</p></section></div>
 <header class="app-header">
   <div class="header-brand">
     <img src="toxic-codes-logo.png" alt="Toxic Codes">
@@ -132,32 +163,6 @@ async function downloadFile(remotePath,name){message('Downloading and verifying 
 $('connectBtn').addEventListener('click',connect);$('disconnectBtn').addEventListener('click',disconnect);$('browseBtn').addEventListener('click',()=>{showBrowser();go($('pathInput').value)});$('closeBrowserBtn').addEventListener('click',hideBrowser);$('browserModal').addEventListener('click',e=>{if(e.target===$('browserModal'))hideBrowser()});document.addEventListener('keydown',e=>{if(e.key==='Escape')hideBrowser()});$('pathInput').addEventListener('keydown',e=>{if(e.key==='Enter')go($('pathInput').value)});$('uploadBtn').addEventListener('click',upload);$('popupAddBtn').addEventListener('click',()=>$('popupFiles').click());$('popupFiles').addEventListener('change',async()=>{await uploadFiles($('popupFiles').files);$('popupFiles').value='';});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b){const folder=e.target.closest('.entry[data-kind=\"directory\"]');if(folder){showBrowser();go(folder.dataset.path);}return;}const a=b.dataset.action;if(['root','usb0','usb1','up','refresh'].includes(a))showBrowser();if(a==='root')go('/');else if(a==='usb0')go('/mnt/usb0');else if(a==='usb1')go('/mnt/usb1');else if(a==='up')up();else if(a==='refresh')refresh();else if(a==='open')go(b.dataset.path);else if(a==='download')downloadFile(b.dataset.path,b.dataset.name);else if(a==='delete')deleteFile(b.dataset.path,b.dataset.name);});
 initializeLogin();setInterval(()=>{if(!document.body.classList.contains('locked'))checkStatus()},10000);
-<style>
-/* Metallic dark green and yellow buttons */
-button:not(.danger) {
-color: #fff9c9;
-border: 1px solid #d8c45b;
-background: linear-gradient(180deg, #477c45, #24552d 45%, #123b24);
-box-shadow: inset 0 1px 0 #ffffff44, 0 4px 13px #0006;
-text-shadow: 0 1px 2px #000;
-}
-
-button:not(.danger):hover {
-color: #fffde0;
-border-color: #f3df70;
-background: linear-gradient(180deg, #639b4f, #326b35 45%, #19482a);
-}
-
-button.secondary:not(.danger) {
-color: #f4e88d;
-border-color: #9d963e;
-background: linear-gradient(180deg, #294d32, #183a27 55%, #102b1e);
-}
-
-button.secondary:not(.danger):hover {
-background: linear-gradient(180deg, #3d6840, #245032 55%, #153b27);
-}
-</style>
 
 
 
