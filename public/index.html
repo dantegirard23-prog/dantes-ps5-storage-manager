@@ -154,14 +154,108 @@ async function go(p){if(!connected){message('Connect to the PS5 first.',true);po
 function up(){let p=current.replace(/\/+$/,'');let i=p.lastIndexOf('/');go(i<=0?'/':p.slice(0,i))}
 function size(n){if(!n)return '0 B';let u=['B','KB','MB','GB','TB'],i=0;while(n>=1024&&i<4){n/=1024;i++}return n.toFixed(1)+' '+u[i]}
 function joinPath(dir,name){return (dir==='/'?'':dir.replace(/\/$/,''))+'/'+name}
-function renderEntries(entries){const roots=[$('entries'),$('popupEntries')];for(const root of roots){root.replaceChildren();if(!entries.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Folder is empty.';root.append(empty);continue;}for(const item of entries){const full=joinPath(current,item.name),row=document.createElement('div');row.className='entry';row.dataset.path=full;row.dataset.kind=item.type;const icon=document.createElement('span');icon.textContent=item.type==='directory'?'📁':'📄';const nm=document.createElement('span');nm.className='nm';nm.append(document.createTextNode(item.name));const small=document.createElement('small');small.textContent=item.type==='directory'?'Folder':size(item.size);nm.append(small);row.append(icon,nm);if(item.type==='directory'){const open=document.createElement('button');open.textContent='Open';open.dataset.action='open';open.dataset.path=full;row.append(open);row.addEventListener('dblclick',()=>go(full));}else{const actions=document.createElement('div');actions.className='file-actions';const dl=document.createElement('button');dl.textContent='Download';dl.dataset.action='download';dl.dataset.path=full;dl.dataset.name=item.name;const del=document.createElement('button');del.className='danger';del.textContent='Delete';del.dataset.action='delete';del.dataset.path=full;del.dataset.name=item.name;actions.append(dl,del);row.append(actions);}root.append(row);}}}
+function renderEntries(entries) {
+const roots = [$('entries'), $('popupEntries')];
+
+for (const root of roots) {
+root.replaceChildren();
+
+if (!entries.length) {
+const empty = document.createElement('div');
+empty.className = 'empty';
+empty.textContent = 'Folder is empty.';
+root.append(empty);
+continue;
+}
+
+for (const item of entries) {
+const full = joinPath(current, item.name);
+const row = document.createElement('div');
+row.className = 'entry';
+row.dataset.path = full;
+row.dataset.kind = item.type;
+
+const icon = document.createElement('span');
+icon.textContent = item.type === 'directory' ? '📁' : '📄';
+
+const nm = document.createElement('span');
+nm.className = 'nm';
+nm.append(document.createTextNode(item.name));
+
+const small = document.createElement('small');
+small.textContent = item.type === 'directory' ? 'Folder' : size(item.size);
+nm.append(small);
+row.append(icon, nm);
+
+if (item.type === 'directory') {
+const actions = document.createElement('div');
+actions.className = 'file-actions';
+
+const open = document.createElement('button');
+open.textContent = 'Open';
+open.dataset.action = 'open';
+open.dataset.path = full;
+
+const del = document.createElement('button');
+del.textContent = 'Delete Folder';
+del.className = 'danger';
+del.dataset.action = 'delete-folder';
+del.dataset.path = full;
+del.dataset.name = item.name;
+
+actions.append(open, del);
+row.append(actions);
+row.addEventListener('dblclick', () => go(full));
+} else {
+const actions = document.createElement('div');
+actions.className = 'file-actions';
+
+const dl = document.createElement('button');
+dl.textContent = 'Download';
+dl.dataset.action = 'download';
+dl.dataset.path = full;
+dl.dataset.name = item.name;
+
+const del = document.createElement('button');
+del.className = 'danger';
+del.textContent = 'Delete';
+del.dataset.action = 'delete';
+del.dataset.path = full;
+del.dataset.name = item.name;
+
+actions.append(dl, del);
+row.append(actions);
+}
+
+root.append(row);
+}
+}
+}
 async function refresh(){if(!connected){message('Connect to the PS5 before browsing.',true);popupMessage('Connect to the PS5 before browsing.',true);return;}message('Loading '+current+' …');popupMessage('Loading '+current+' …');$('entries').textContent='Loading folder…';$('popupEntries').textContent='Loading folder…';try{let j=await api('/api/list?path='+encodeURIComponent(current));current=j.path||current;$('path').textContent=current;$('popupPath').textContent=current;$('pathInput').value=current;renderEntries(j.entries||[]);const msg='Loaded '+(j.entries||[]).length+' item(s) from '+current+'.';message(msg);popupMessage(msg);}catch(e){$('entries').textContent='Could not open this folder: '+e.message;$('popupEntries').textContent='Could not open this folder: '+e.message;message('Browse failed: '+e.message,true);popupMessage('Browse failed: '+e.message,true);}}
 async function uploadFiles(files){const chosen=Array.from(files||[]);if(!chosen.length)return;if(!connected){popupMessage('Connect to the PS5 before uploading.',true);message('Connect to the PS5 before uploading.',true);return;}let ok=0,failed=[];for(let i=0;i<chosen.length;i++){const f=chosen[i];popupMessage('Uploading '+(i+1)+' of '+chosen.length+': '+f.name+' …');message('Uploading and verifying '+f.name+' …');const d=new FormData();d.append('file',f);d.append('remoteDir',current);try{const j=await api('/api/upload',{method:'POST',body:d});ok++;popupMessage(j.message+' ('+ok+'/'+chosen.length+')');}catch(e){failed.push(f.name+': '+e.message);}}await refresh();if(failed.length){const msg='Uploaded '+ok+' file(s). Failed: '+failed.join(' | ');popupMessage(msg,true);message(msg,true);}else{const msg='Successfully uploaded and verified '+ok+' file(s) into '+current+'.';popupMessage(msg);message(msg);} }
 async function upload(){const input=$('file');if(!input.files.length){message('Choose a file to upload.',true);return;}await uploadFiles(input.files);input.value='';}
-async function deleteFile(remotePath,name){if(!confirm('Permanently delete this file from the PS5?\n\n'+name+'\n\nThis cannot be undone.'))return;popupMessage('Deleting '+name+' …');message('Deleting '+name+' …');try{let j=await api('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({remotePath})});popupMessage(j.message);message(j.message);await refresh()}catch(e){message('Delete failed: '+e.message,true);popupMessage('Delete failed: '+e.message,true)}}
+async function deleteFolder(remotePath, name) {
+if (!confirm('Permanently delete this folder and EVERYTHING inside it?\n\n' + name + '\n\nThis cannot be undone.')) return;
+
+try {
+const j = await api('/api/delete-folder', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ remotePath })
+});
+
+message(j.message);
+popupMessage(j.message);
+await refresh();
+} catch (e) {
+message('Folder deletion failed: ' + e.message, true);
+popupMessage('Folder deletion failed: ' + e.message, true);
+}
+}
+ async function deleteFile(remotePath,name){if(!confirm('Permanently delete this file from the PS5?\n\n'+name+'\n\nThis cannot be undone.'))return;popupMessage('Deleting '+name+' …');message('Deleting '+name+' …');try{let j=await api('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({remotePath})});popupMessage(j.message);message(j.message);await refresh()}catch(e){message('Delete failed: '+e.message,true);popupMessage('Delete failed: '+e.message,true)}}
 async function downloadFile(remotePath,name){message('Downloading and verifying '+name+' …');popupMessage('Downloading and verifying '+name+' …');try{let r=await fetch('/api/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({remotePath,name})});if(!r.ok){let j=await r.json();throw Error(j.error||'Download failed')}if(r.headers.get('X-Transfer-Verified')!=='true')throw Error('Read-back verification not confirmed.');let blob=await r.blob(),a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);const msg='Download verified. SHA-256: '+r.headers.get('X-Transfer-SHA256');message(msg);popupMessage(msg);}catch(e){message('Download failed: '+e.message,true);popupMessage('Download failed: '+e.message,true)}}
 $('connectBtn').addEventListener('click',connect);$('disconnectBtn').addEventListener('click',disconnect);$('browseBtn').addEventListener('click',()=>{showBrowser();go($('pathInput').value)});$('closeBrowserBtn').addEventListener('click',hideBrowser);$('browserModal').addEventListener('click',e=>{if(e.target===$('browserModal'))hideBrowser()});document.addEventListener('keydown',e=>{if(e.key==='Escape')hideBrowser()});$('pathInput').addEventListener('keydown',e=>{if(e.key==='Enter')go($('pathInput').value)});$('uploadBtn').addEventListener('click',upload);$('popupAddBtn').addEventListener('click',()=>$('popupFiles').click());$('popupFiles').addEventListener('change',async()=>{await uploadFiles($('popupFiles').files);$('popupFiles').value='';});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b){const folder=e.target.closest('.entry[data-kind=\"directory\"]');if(folder){showBrowser();go(folder.dataset.path);}return;}const a=b.dataset.action;if(['root','usb0','usb1','up','refresh'].includes(a))showBrowser();if(a==='root')go('/');else if(a==='usb0')go('/mnt/usb0');else if(a==='usb1')go('/mnt/usb1');else if(a==='up')up();else if(a==='refresh')refresh();else if(a==='open')go(b.dataset.path);else if(a==='download')downloadFile(b.dataset.path,b.dataset.name);else if(a==='delete')deleteFile(b.dataset.path,b.dataset.name);});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b){const folder=e.target.closest('.entry[data-kind=\"directory\"]');if(folder){showBrowser();go(folder.dataset.path);}return;}const a=b.dataset.action;if(['root','usb0','usb1','up','refresh'].includes(a))showBrowser();if(a==='root')go('/');else if(a==='usb0')go('/mnt/usb0');else if(a==='usb1')go('/mnt/usb1');else if(a==='up')up();else if(a==='refresh')refresh();else if(a==='open')go(b.dataset.path);else if(a==='download')downloadFile(b.dataset.path,b.dataset.name);else if(a==='delete-folder')deleteFolder(b.dataset.path,b.dataset.name);
 initializeLogin();setInterval(()=>{if(!document.body.classList.contains('locked'))checkStatus()},10000);
 
 
