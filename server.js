@@ -1,3 +1,4 @@
+
 const express = require('express');
 const ftp = require('basic-ftp');
 const multer = require('multer');
@@ -192,6 +193,65 @@ app.post('/api/delete',async(req,res)=>{
     await withFtp(async c => { await c.cd(parent); await c.remove(name); });
     res.json({ok:true,message:'File deleted: '+name});
   } catch(e){res.status(502).json({error:e.message || 'FTP delete failed.'});}
+});
+// Delete a selected folder and everything inside it.
+app.post('/api/delete-folder', async (req, res) => {
+if (!client) {
+return res.status(400).json({ error: 'FTP is not connected.' });
+}
+
+const { remotePath } = req.body || {};
+
+if (
+typeof remotePath !== 'string' ||
+!remotePath.startsWith('/') ||
+remotePath.includes('\\') ||
+remotePath.endsWith('/') ||
+remotePath.split('/').some(part => part === '..')
+) {
+return res.status(400).json({ error: 'Invalid folder path.' });
+}
+
+const parts = remotePath.split('/').filter(Boolean);
+
+if (
+parts.length === 0 ||
+(parts.length === 1 && parts[0] === 'mnt') ||
+(parts.length === 2 &&
+parts[0] === 'mnt' &&
+['usb0', 'usb1'].includes(parts[1]))
+) {
+return res.status(400).json({
+error: 'This folder is protected.'
+});
+}
+
+const name = parts.pop();
+const parent = '/' + parts.join('/');
+
+try {
+await withFtp(async c => {
+const listing = await listDirectory(c, parent);
+const entry = listing.entries.find(x => x.name === name);
+
+if (!entry) {
+throw new Error('Folder not found. Refresh and try again.');
+}
+
+if (!entry.isDirectory) {
+throw new Error('The selected item is not a folder.');
+}
+
+await c.removeDir(name);
+});
+
+res.json({
+ok: true,
+message: 'Folder deleted: ' + name
+});
+} catch (e) {
+res.status(502).json({ error: e.message });
+}
 });
 
 app.post('/api/download',async(req,res)=>{
