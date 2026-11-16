@@ -1,7 +1,6 @@
-
 {
   "name": "dante-ps5-storage-manager",
-  "version": "1.3.1",
+  "version": "1.3.4",
   "description": "Dante's PS5 Storage Manager desktop application",
   "author": "Dante Girard",
   "private": true,
@@ -25,6 +24,7 @@
     "productName": "Dante's PS5 Storage Manager",
     "files": [
       "main.js",
+      "preload.js",
       "server.js",
       "public/**/*",
       "package.json",
@@ -34,7 +34,9 @@
       "output": "dist"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "toxic-codes.ico"
     },
     "nsis": {

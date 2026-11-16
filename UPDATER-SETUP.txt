@@ -1,0 +1,35 @@
+DANTE'S PS5 STORAGE MANAGER — IN-APP UPDATER PATCH (v1.3.4)
+
+WHAT CHANGED
+- Adds a Check for Updates button to the app header.
+- Uses the existing electron-updater dependency and the configured GitHub Releases repository.
+- Shows checking, available, download progress, up-to-date, and error messages.
+- Prompts before restarting to install a downloaded update.
+- Adds a secure Electron preload bridge; no Node integration is enabled in the page.
+- Preserves the existing Toxic Codes logo, wallpaper, FTP bridge, login, and transfer features.
+
+APPLY TO YOUR EXISTING GITHUB DESKTOP PROJECT
+1. Close the running Storage Manager app.
+2. Extract this ZIP somewhere easy to find.
+3. Copy the extracted files and folders into your existing dantes-ps5-storage-manager project folder.
+4. When Windows asks, choose to replace the matching files. Do NOT delete your existing project folder and do NOT replace its .git folder.
+5. Open GitHub Desktop. It should show the changed files.
+6. Review the changes, then commit them to main and push to origin.
+7. In the project folder, open Command Prompt and run:
+      npm install
+   This updates the package lock to include the updater dependency and installs dependencies.
+
+PUBLISH THE FIRST UPDATER-ENABLED BUILD
+The uploaded project already has tags v1.3.2 and V1.3.3 in its Git history. This patch uses version 1.3.4 to avoid reusing those tags.
+1. After pushing the commit, create a new tag named exactly v1.3.4 on the new commit.
+2. Push the tag to GitHub.
+3. Open the repository's Actions tab and wait for "Build and publish Windows release" to succeed.
+4. Confirm GitHub Releases contains the v1.3.4 Windows installer and latest.yml.
+5. Install that v1.3.4 Windows installer once. This is the one final manual install needed to get the updater into the app.
+6. After that, future releases can be checked and downloaded with the in-app Check for Updates button.
+
+IMPORTANT
+- The updater only works in the packaged/installed Windows app, not when running with npm start.
+- Every future release needs a higher package.json version and a matching lowercase-v tag (for example v1.3.5).
+- Do not create v1.3.4 if that tag/release has since been created elsewhere. If it has, increase package.json to the next unused version and use the matching tag.
+- I verified JavaScript syntax in main.js, preload.js, server.js, and the page script. I could not test a real GitHub download or PS5 FTP connection from this environment.
