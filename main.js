@@ -66,7 +66,8 @@ ipcMain.handle('app:check-for-updates', async () => {
 version: result && result.updateInfo ? result.updateInfo.version : app.getVersion(),
 message: result && result.isUpdateAvailable
   ? 'Update found. Downloading…'
-  : 'You are using the latest version (' + app.getVersion() + ').'
+   : 'You are using the latest version (' + app.getVersion() + ').'
+    };
   } catch (error) {
     reportUpdate('error', 'Update check failed: ' + (error.message || 'Unknown error'));
     return { status: 'error', message: error.message || 'Update check failed.' };
