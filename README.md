@@ -1,0 +1,45 @@
+# Dante's PS5 Storage Manager — Windows Desktop Edition
+
+This Windows desktop app connects to the FTP service running on your PS5. This build is configured for **FTPSRV** with your saved defaults: **192.168.1.123**, port **2121**, username `anonymous`, and a blank password. Change the credentials if your FTPSRV setup uses different ones.
+
+## Build the Windows installer
+
+Requirements: Windows 10/11, Node.js 20 or newer, and an internet connection for the first dependency download.
+
+1. Extract this ZIP to a folder on your Windows PC.
+2. Open that folder in File Explorer.
+3. Click the address bar, type `cmd`, and press Enter.
+4. Run:
+
+   ```powershell
+   npm install
+   npm run dist
+   ```
+
+5. The installer will be created in the `dist` folder. Run the `.exe` installer inside `dist`.
+
+To test without building an installer, run `npm start` after `npm install`.
+
+## Connecting to the PS5
+
+- Start FTPSRV on the PS5 before pressing Connect.
+- Enter the PS5 IP address, not the PC's IP address.
+- Default IP: `192.168.1.123`.
+- Default FTP port: `2121`.
+- Default username: `anonymous`; password blank. Use the credentials configured in FTPSRV if different.
+- Keep the PC and PS5 on the same trusted home network.
+- FTP is unencrypted. Use it only on a trusted network.
+
+## Browsing and transfers
+
+- Use FTP root, USB 0, USB 1, or type a path and press Browse.
+- Click **Open** or double-click a folder to enter it.
+- USB mount paths vary by setup. `/mnt/usb0` and `/mnt/usb1` are examples, not guaranteed paths; use paths actually shown by FTPSRV.
+- Uploads and downloads are checked with SHA-256 read-back verification.
+- Delete only removes an explicitly selected file. Folder deletion is disabled.
+
+The app runs its local bridge on a free loopback-only port to avoid collisions with other applications. The PC must remain on while transfers run. Verification can detect transfer mismatches but cannot guarantee future drive reliability.
+
+
+## Local login
+On first launch, create a username and password (minimum 10 characters). The password is stored as a salted scrypt hash in Electron's per-user application data folder. This is an app lock, not a PSN account.
