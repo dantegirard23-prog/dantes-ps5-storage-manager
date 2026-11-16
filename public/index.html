@@ -132,4 +132,33 @@ async function downloadFile(remotePath,name){message('Downloading and verifying 
 $('connectBtn').addEventListener('click',connect);$('disconnectBtn').addEventListener('click',disconnect);$('browseBtn').addEventListener('click',()=>{showBrowser();go($('pathInput').value)});$('closeBrowserBtn').addEventListener('click',hideBrowser);$('browserModal').addEventListener('click',e=>{if(e.target===$('browserModal'))hideBrowser()});document.addEventListener('keydown',e=>{if(e.key==='Escape')hideBrowser()});$('pathInput').addEventListener('keydown',e=>{if(e.key==='Enter')go($('pathInput').value)});$('uploadBtn').addEventListener('click',upload);$('popupAddBtn').addEventListener('click',()=>$('popupFiles').click());$('popupFiles').addEventListener('change',async()=>{await uploadFiles($('popupFiles').files);$('popupFiles').value='';});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b){const folder=e.target.closest('.entry[data-kind=\"directory\"]');if(folder){showBrowser();go(folder.dataset.path);}return;}const a=b.dataset.action;if(['root','usb0','usb1','up','refresh'].includes(a))showBrowser();if(a==='root')go('/');else if(a==='usb0')go('/mnt/usb0');else if(a==='usb1')go('/mnt/usb1');else if(a==='up')up();else if(a==='refresh')refresh();else if(a==='open')go(b.dataset.path);else if(a==='download')downloadFile(b.dataset.path,b.dataset.name);else if(a==='delete')deleteFile(b.dataset.path,b.dataset.name);});
 initializeLogin();setInterval(()=>{if(!document.body.classList.contains('locked'))checkStatus()},10000);
+<style>
+/* Metallic dark green and yellow buttons */
+button:not(.danger) {
+color: #fff9c9;
+border: 1px solid #d8c45b;
+background: linear-gradient(180deg, #477c45, #24552d 45%, #123b24);
+box-shadow: inset 0 1px 0 #ffffff44, 0 4px 13px #0006;
+text-shadow: 0 1px 2px #000;
+}
+
+button:not(.danger):hover {
+color: #fffde0;
+border-color: #f3df70;
+background: linear-gradient(180deg, #639b4f, #326b35 45%, #19482a);
+}
+
+button.secondary:not(.danger) {
+color: #f4e88d;
+border-color: #9d963e;
+background: linear-gradient(180deg, #294d32, #183a27 55%, #102b1e);
+}
+
+button.secondary:not(.danger):hover {
+background: linear-gradient(180deg, #3d6840, #245032 55%, #153b27);
+}
+</style>
+
+
+
 </script></body></html>
