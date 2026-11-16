@@ -62,10 +62,11 @@ ipcMain.handle('app:check-for-updates', async () => {
   try {
     const result = await autoUpdater.checkForUpdates();
     return {
-      status: result && result.isUpdateAvailable ? 'available' : 'checking',
-      version: result && result.updateInfo ? result.updateInfo.version : null,
-      message: result && result.isUpdateAvailable ? 'Update found. Downloading…' : 'Checking for updates…'
-    };
+      status: result && result.isUpdateAvailable ? 'available' : 'current',
+version: result && result.updateInfo ? result.updateInfo.version : app.getVersion(),
+message: result && result.isUpdateAvailable
+  ? 'Update found. Downloading…'
+  : 'You are using the latest version (' + app.getVersion() + ').'
   } catch (error) {
     reportUpdate('error', 'Update check failed: ' + (error.message || 'Unknown error'));
     return { status: 'error', message: error.message || 'Update check failed.' };
