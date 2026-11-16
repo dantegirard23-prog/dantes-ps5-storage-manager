@@ -74,6 +74,35 @@ background: linear-gradient(180deg, #3d6840, #245032 55%, #153b27);
 </style>
 
 
+
+<style>
+/* TOXIC CODES: unified crimson / black theme */
+:root{color-scheme:dark}
+button:not(.danger),button.secondary:not(.danger){
+  color:#fff0f3;border:1px solid #b83b58;
+  background:linear-gradient(180deg,#76243a,#3b101e 60%,#19080e);
+  box-shadow:inset 0 1px 0 #ffffff22,0 4px 13px #0007;
+}
+button:not(.danger):hover,button.secondary:not(.danger):hover{
+  color:#fff;border-color:#ff6b8a;
+  background:linear-gradient(180deg,#9b304b,#581629 60%,#260b14);
+}
+.upgrade-toolbar{margin-top:14px!important}
+.upgrade-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.upgrade-controls input{flex:1 1 260px;min-width:180px}
+.upgrade-controls button{margin:0}
+.upgrade-status{font-size:12px;color:#f0b9c6;padding-top:9px}
+.entry-select{width:17px;height:17px;flex:0 0 auto;accent-color:#d42c52}
+.entry.is-selected{background:rgba(160,35,65,.24)}
+.storage-report{margin-top:12px;padding:13px;border:1px solid #8f3048;border-radius:11px;background:#10070b}
+.storage-report strong{color:#ffdbe3}
+.transfer-progress{margin-top:14px!important}
+.progress-track{height:12px;border-radius:20px;background:#291019;border:1px solid #713044;overflow:hidden}
+#transferBar{height:100%;width:0%;background:linear-gradient(90deg,#8b1d3c,#f04c70);transition:width .18s ease}
+#transferPercent{color:#ffdbe3;font-variant-numeric:tabular-nums}
+@media(max-width:560px){.upgrade-controls{display:grid;grid-template-columns:1fr 1fr}.upgrade-controls input{grid-column:1/-1}.upgrade-controls button{width:100%}}
+</style>
+
 </head><body class="locked"><div id="loginScreen" class="login-screen"><section class="login-card"><img src="toxic-codes-logo.png" alt="Toxic Codes"><h2 id="loginTitle">Welcome, Dante Girard</h2><p id="loginSubtitle">Secure local sign-in</p><form id="loginForm"><div class="field"><label for="loginUsername">Username</label><input id="loginUsername" autocomplete="username" required minlength="3" maxlength="32"></div><div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required minlength="10" maxlength="128"></div><div class="field" id="confirmField" hidden><label for="confirmPassword">Confirm password</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128"></div><div class="login-error" id="loginError" role="alert"></div><button id="loginSubmit" type="submit">Log in</button></form><p class="muted">First launch? Create your own account. This login is for this Windows app only, not PSN.</p></section></div>
 <header class="app-header">
   <div class="header-brand">
@@ -109,6 +138,24 @@ background: linear-gradient(180deg, #3d6840, #245032 55%, #153b27);
       <div class="browser-shortcuts"><button class="secondary" data-action="up">↑ Up</button><button class="secondary" data-action="refresh">↻ Refresh</button></div></div>
       <div class="path-row"><div id="path" class="path">/</div><div class="path-entry"><input id="pathInput" value="/" placeholder="Enter FTP folder path"><button id="browseBtn">Browse</button></div></div>
       <div id="message" class="muted" role="status" aria-live="polite" style="padding:8px 2px;min-height:28px"></div>
+
+<div class="upgrade-toolbar panel" id="upgradeTools">
+  <div class="section-heading"><div><span class="eyebrow">POWER TOOLS</span><h2>Search & bulk actions</h2><p class="muted">Search this folder, select entries, or analyze accessible storage.</p></div></div>
+  <div class="upgrade-controls">
+    <input id="entrySearch" type="search" placeholder="Search files and folders in this folder…" aria-label="Search current folder">
+    <button id="selectVisibleBtn" class="secondary" type="button">Select visible</button>
+    <button id="clearSelectionBtn" class="secondary" type="button">Clear selection</button>
+    <button id="bulkDeleteBtn" class="danger" type="button">Delete selected</button>
+    <button id="storageScanBtn" type="button">Analyze storage</button>
+  </div>
+  <div class="upgrade-status" id="selectionStatus" aria-live="polite">0 selected</div>
+  <div id="storageReport" class="storage-report" hidden></div>
+</div>
+<div class="transfer-progress panel" id="transferProgress" hidden>
+  <div class="section-heading"><div><span class="eyebrow">TRANSFER QUEUE</span><h2>Transfer progress</h2></div><strong id="transferPercent">0%</strong></div>
+  <div class="progress-track"><div id="transferBar"></div></div>
+  <p id="transferStatus" class="muted" aria-live="polite">Waiting for transfers…</p>
+</div>
       <div id="entries" class="file-list"><div class="empty">Connect to browse files.</div></div>
     </section>
     <section class="panel transfer-panel">
@@ -232,7 +279,28 @@ root.append(row);
 }
 }
 async function refresh(){if(!connected){message('Connect to the PS5 before browsing.',true);popupMessage('Connect to the PS5 before browsing.',true);return;}message('Loading '+current+' …');popupMessage('Loading '+current+' …');$('entries').textContent='Loading folder…';$('popupEntries').textContent='Loading folder…';try{let j=await api('/api/list?path='+encodeURIComponent(current));current=j.path||current;$('path').textContent=current;$('popupPath').textContent=current;$('pathInput').value=current;renderEntries(j.entries||[]);const msg='Loaded '+(j.entries||[]).length+' item(s) from '+current+'.';message(msg);popupMessage(msg);}catch(e){$('entries').textContent='Could not open this folder: '+e.message;$('popupEntries').textContent='Could not open this folder: '+e.message;message('Browse failed: '+e.message,true);popupMessage('Browse failed: '+e.message,true);}}
-async function uploadFiles(files){const chosen=Array.from(files||[]);if(!chosen.length)return;if(!connected){popupMessage('Connect to the PS5 before uploading.',true);message('Connect to the PS5 before uploading.',true);return;}let ok=0,failed=[];for(let i=0;i<chosen.length;i++){const f=chosen[i];popupMessage('Uploading '+(i+1)+' of '+chosen.length+': '+f.name+' …');message('Uploading and verifying '+f.name+' …');const d=new FormData();d.append('file',f);d.append('remoteDir',current);try{const j=await api('/api/upload',{method:'POST',body:d});ok++;popupMessage(j.message+' ('+ok+'/'+chosen.length+')');}catch(e){failed.push(f.name+': '+e.message);}}await refresh();if(failed.length){const msg='Uploaded '+ok+' file(s). Failed: '+failed.join(' | ');popupMessage(msg,true);message(msg,true);}else{const msg='Successfully uploaded and verified '+ok+' file(s) into '+current+'.';popupMessage(msg);message(msg);} }
+async function uploadFiles(files){
+const chosen=Array.from(files||[]);if(!chosen.length)return;
+if(!connected){popupMessage('Connect to the PS5 before uploading.',true);message('Connect to the PS5 before uploading.',true);return;}
+let ok=0,failed=[];
+const panel=document.getElementById('transferProgress'),bar=document.getElementById('transferBar'),percent=document.getElementById('transferPercent'),status=document.getElementById('transferStatus');
+if(panel)panel.hidden=false;
+for(let i=0;i<chosen.length;i++){
+const f=chosen[i],start=Math.round((i/chosen.length)*100);
+if(bar)bar.style.width=start+'%';if(percent)percent.textContent=start+'%';
+if(status)status.textContent='Uploading '+(i+1)+' of '+chosen.length+': '+f.name+' (then verifying SHA-256)…';
+popupMessage('Uploading '+(i+1)+' of '+chosen.length+': '+f.name+' …');message('Uploading and verifying '+f.name+' …');
+const d=new FormData();d.append('file',f);d.append('remoteDir',current);
+try{const j=await api('/api/upload',{method:'POST',body:d});ok++;popupMessage(j.message+' ('+ok+'/'+chosen.length+')');}
+catch(e){failed.push(f.name+': '+e.message);}
+const done=Math.round(((i+1)/chosen.length)*100);
+if(bar)bar.style.width=done+'%';if(percent)percent.textContent=done+'%';
+if(status)status.textContent='Processed '+(i+1)+' of '+chosen.length+' file(s). '+ok+' verified, '+failed.length+' failed.';
+}
+await refresh();
+if(failed.length){const msg='Uploaded '+ok+' file(s). Failed: '+failed.join(' | ');popupMessage(msg,true);message(msg,true);if(status)status.textContent=msg;}
+else{const msg='Successfully uploaded and verified '+ok+' file(s) into '+current+'.';popupMessage(msg);message(msg);if(status)status.textContent=msg;}
+}
 async function upload(){const input=$('file');if(!input.files.length){message('Choose a file to upload.',true);return;}await uploadFiles(input.files);input.value='';}
 async function deleteFolder(remotePath, name) {
 if (!confirm('Permanently delete this folder and EVERYTHING inside it?\n\n' + name + '\n\nThis cannot be undone.')) return;
@@ -261,4 +329,4 @@ initializeLogin();setInterval(()=>{if(!document.body.classList.contains('locked'
 
 
 
-</script></body></html>
+</script><script src="upgrades.js"></script></body></html>

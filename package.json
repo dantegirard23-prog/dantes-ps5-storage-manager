@@ -1,6 +1,6 @@
 {
   "name": "dante-ps5-storage-manager",
-  "version": "1.3.12",
+  "version": "1.4.0",
   "description": "Dante's PS5 Storage Manager desktop application",
   "author": "Dante Girard",
   "private": true,
